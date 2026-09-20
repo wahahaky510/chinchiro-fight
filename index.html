@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>豪華カジノ 4人対戦チンチロ勝負 (Chinchiro VIP Mobile)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: 
+                radial-gradient(circle at 50% 15%, rgba(245, 158, 11, 0.16), transparent 50%),
+                radial-gradient(circle at 10% 80%, rgba(185, 28, 28, 0.18), transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.2), transparent 45%),
+                repeating-linear-gradient(45deg, rgba(255, 215, 0, 0.015) 0px, rgba(255, 215, 0, 0.015) 2px, transparent 2px, transparent 26px),
+                radial-gradient(circle at center, #1a0f21 0%, #0c0613 65%, #030105 100%);
+            color: #f3f4f6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .font-japanese {
+            font-family: 'Yuji Syuku', serif;
+        }
+
+        /* 4-Player Casino Felt Table */
+        .felt-table {
+            background-color: #0c3620;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.15) 0%, transparent 75%),
+                radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 0),
+                linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+            background-size: 100% 100%, 28px 28px, 100% 100%;
+            box-shadow: 
+                inset 0 0 80px rgba(0, 0, 0, 0.9),
+                0 15px 40px rgba(0, 0, 0, 0.85),
+                0 0 0 3px #2d180f,
+                0 0 0 6px #d97706,
+                0 0 25px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Japanese Chawan Bowl */
+        .bowl {
+            background: radial-gradient(circle at 40% 40%, #292929 0%, #111111 70%, #030303 100%);
+            border: 6px solid #b45309;
+            box-shadow: 
+                0 12px 28px rgba(0,0,0,0.7),
+                inset 0 8px 16px rgba(0,0,0,0.9),
+                inset 0 -4px 12px rgba(255,215,0,0.25),
+                0 0 20px rgba(245, 158, 11, 0.3);
+            position: relative;
+        }
+
+        /* 3D Dice Styling */
+        .dice-container {
+            perspective: 500px;
+            width: 48px;
+            height: 48px;
+        }
+
+        @media (min-width: 640px) {
+            .dice-container {
+                width: 58px;
+                height: 58px;
+            }
+        }
+
+        .dice-container-mini {
+            perspective: 350px;
+            width: 30px;
+            height: 30px;
+        }
+
+        @media (min-width: 640px) {
+            .dice-container-mini {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        .dice-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out;
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #fdfbf7;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.12);
+        }
+
+        .dice-face-mini {
+            border-radius: 5px;
+            border-width: 1px;
+        }
+
+        /* Dots */
+        .dot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 70%;
+            height: 70%;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: #1f2937;
+            border-radius: 50%;
+            justify-self: center;
+            align-self: center;
+        }
+
+        @media (min-width: 640px) {
+            .dot { width: 8px; height: 8px; }
+        }
+
+        .dice-container-mini .dot {
+            width: 4px;
+            height: 4px;
+        }
+
+        .dot-large-red {
+            width: 14px;
+            height: 14px;
+            background-color: #dc2626;
+            border-radius: 50%;
+            grid-column: 2;
+            grid-row: 2;
+            justify-self: center;
+            align-self: center;
+        }
+
+        @media (min-width: 640px) {
+            .dot-large-red { width: 18px; height: 18px; }
+        }
+
+        .dice-container-mini .dot-large-red {
+            width: 10px;
+            height: 10px;
+        }
+
+        /* 3D Cube Faces */
+        .face-1 { transform: rotateY(0deg) translateZ(24px); }
+        .face-2 { transform: rotateY(90deg) translateZ(24px); }
+        .face-3 { transform: rotateX(-90deg) translateZ(24px); }
+        .face-4 { transform: rotateX(90deg) translateZ(24px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(24px); }
+        .face-6 { transform: rotateY(180deg) translateZ(24px); }
+
+        @media (min-width: 640px) {
+            .face-1 { transform: rotateY(0deg) translateZ(29px); }
+            .face-2 { transform: rotateY(90deg) translateZ(29px); }
+            .face-3 { transform: rotateX(-90deg) translateZ(29px); }
+            .face-4 { transform: rotateX(90deg) translateZ(29px); }
+            .face-5 { transform: rotateY(-90deg) translateZ(29px); }
+            .face-6 { transform: rotateY(180deg) translateZ(29px); }
+        }
+
+        @keyframes shakeBowl {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-6px, 4px) rotate(-2deg); }
+            40% { transform: translate(6px, -4px) rotate(2deg); }
+            60% { transform: translate(-4px, -6px) rotate(-1deg); }
+            80% { transform: translate(4px, 5px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .shaking {
+            animation: shakeBowl 0.15s infinite;
+        }
+
+        /* Climax Aura */
+        @keyframes auraGlow {
+            0% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.4), inset 0 0 8px rgba(168, 85, 247, 0.4); transform: scale(1.04); }
+            50% { box-shadow: 0 0 28px rgba(56, 189, 248, 0.9), inset 0 0 16px rgba(168, 85, 247, 0.9), 0 0 35px rgba(255, 255, 255, 0.6); transform: scale(1.14) rotate(4deg); }
+            100% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.4), inset 0 0 8px rgba(168, 85, 247, 0.4); transform: scale(1.04); }
+        }
+
+        .dice-climax-aura {
+            animation: auraGlow 0.8s ease-in-out infinite !important;
+            border-color: #38bdf8 !important;
+            filter: drop-shadow(0 0 10px #38bdf8);
+        }
+
+        .bowl-tension-zoom {
+            transform: scale(1.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 45px rgba(14, 165, 233, 0.4);
+            transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .tension-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.8) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 20;
+        }
+
+        .tension-active { opacity: 1; }
+
+        .flash-impact {
+            animation: impactFlash 0.35s ease-out forwards;
+        }
+
+        @keyframes impactFlash {
+            0% { background-color: rgba(255, 255, 255, 0.85); }
+            100% { background-color: transparent; }
+        }
+
+        @keyframes pulseIntense {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .reach-banner-anim {
+            animation: pulseIntense 0.6s ease-in-out infinite;
+        }
+
+        /* Cut-in styles */
+        .banner-pinzoro {
+            color: #fef08a !important;
+            text-shadow: 0 0 10px #f59e0b, 0 0 20px #eab308, 0 0 35px #facc15, 0 0 55px #fef08a;
+            filter: drop-shadow(0 4px 14px rgba(245, 158, 11, 0.95));
+        }
+
+        .banner-arashi {
+            color: #ef4444 !important;
+            text-shadow: 0 0 10px #dc2626, 0 0 20px #b91c1c, 0 0 35px #ff0000;
+            filter: drop-shadow(0 4px 10px rgba(220, 38, 38, 0.8));
+        }
+
+        .banner-shigoro {
+            color: #22c55e !important;
+            text-shadow: 0 0 10px #16a34a, 0 0 25px #15803d, 0 0 45px #4ade80;
+            filter: drop-shadow(0 4px 10px rgba(34, 197, 94, 0.8));
+        }
+
+        .banner-hifumi {
+            color: #0a0a0a !important;
+            -webkit-text-stroke: 1.2px #ef4444;
+            text-shadow: 0 0 15px rgba(239, 68, 68, 0.9), 0 0 30px rgba(0, 0, 0, 1);
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.95));
+        }
+
+        .banner-tenkei {
+            color: #ef4444 !important;
+            text-shadow: 0 0 12px #dc2626, 0 0 25px #b91c1c;
+            filter: drop-shadow(0 4px 12px rgba(220, 38, 38, 0.9));
+        }
+
+        .banner-onegai {
+            color: #22c55e !important;
+            text-shadow: 0 0 10px #16a34a, 0 0 25px #15803d;
+            filter: drop-shadow(0 4px 10px rgba(34, 197, 94, 0.85));
+        }
+
+        .banner-ikeee {
+            color: #38bdf8 !important;
+            text-shadow: 0 0 10px #0284c7, 0 0 25px #0369a1;
+            filter: drop-shadow(0 4px 10px rgba(14, 165, 233, 0.85));
+        }
+
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; filter: drop-shadow(0 0 16px rgba(255, 0, 128, 0.9)); }
+            50% { background-position: 100% 50%; filter: drop-shadow(0 0 24px rgba(0, 255, 255, 1)); }
+            100% { background-position: 0% 50%; filter: drop-shadow(0 0 16px rgba(255, 0, 128, 0.9)); }
+        }
+
+        .banner-rainbow-blessing {
+            background: linear-gradient(90deg, #ff007a, #7928ca, #0070f3, #00dfd8, #79ffe1, #f5a623, #ff007a);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowFlow 1.2s ease infinite, pulseIntense 0.4s ease-in-out infinite;
+        }
+
+        .gold-text {
+            background: linear-gradient(135deg, #ffe066 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .seat-active {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.6), inset 0 0 12px rgba(245, 158, 11, 0.25);
+            transform: scale(1.02);
+        }
+
+        .dealer-badge {
+            background: linear-gradient(135deg, #b45309, #f59e0b);
+            color: #000;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen pb-20 md:pb-6">
+
+    <header class="bg-black/85 border-b border-amber-500/30 px-3 py-2.5 backdrop-blur-md sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Brand Logo & Title -->
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-amber-400 via-amber-600 to-yellow-700 rounded-lg md:rounded-xl flex items-center justify-center text-black font-extrabold text-base md:text-xl shadow-lg border border-amber-200">
+                    <span>♠</span>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-1.5">
+                        <h1 class="text-base md:text-2xl font-black tracking-wider font-japanese gold-text leading-tight">
+                            CHINCHIRO
+                        </h1>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase">VIP</span>
+                    </div>
+                    <p class="text-[9px] text-amber-200/60 font-sans tracking-tight hidden sm:block">チンチロリン・親番交代対戦</p>
+                </div>
+            </div>
+            
+            <!-- Mobile Optimized Controls Bar -->
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+                <!-- Player Count Selector -->
+                <div class="flex items-center bg-gray-900/90 rounded-full border border-amber-500/30 p-0.5 shadow">
+                    <button id="btn-count-2" onclick="setPlayerCount(2)" class="px-2 py-0.5 rounded-full text-[11px] font-bold text-gray-300 transition">2人</button>
+                    <button id="btn-count-3" onclick="setPlayerCount(3)" class="px-2 py-0.5 rounded-full text-[11px] font-bold text-gray-300 transition">3人</button>
+                    <button id="btn-count-4" onclick="setPlayerCount(4)" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-black shadow transition">4人</button>
+                </div>
+
+                <button onclick="openNameModal()" title="プレイヤー名変更" class="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-gray-900/90 hover:bg-gray-800 rounded-full border border-amber-500/30 text-xs flex items-center justify-center space-x-1 text-amber-300 transition shadow">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <span class="hidden md:inline text-xs">名前変更</span>
+                </button>
+
+                <button id="auto-btn" onclick="toggleAutoPlay()" title="CPU自動進行切替" class="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-gray-900/90 hover:bg-gray-800 rounded-full border border-amber-500/30 text-xs flex items-center justify-center space-x-1 transition shadow">
+                    <i id="auto-icon" class="fa-solid fa-play text-gray-400"></i>
+                    <span id="auto-text" class="hidden md:inline text-xs">自動: OFF</span>
+                </button>
+
+                <button id="sound-btn" onclick="toggleSound()" title="音声音量切替" class="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-gray-900/90 hover:bg-gray-800 rounded-full border border-amber-500/30 text-xs flex items-center justify-center space-x-1 transition shadow">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="sound-text" class="hidden md:inline text-xs">音: ON</span>
+                </button>
+
+                <button onclick="openRulesModal()" title="役とルール" class="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 rounded-full border border-amber-500/50 text-xs flex items-center justify-center space-x-1 transition shadow">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span class="hidden md:inline text-xs">役一覧</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile View Tab Switcher (Visible on small screens) -->
+    <div class="lg:hidden max-w-md w-full mx-auto px-3 pt-2">
+        <div class="grid grid-cols-2 bg-black/70 p-1 rounded-xl border border-amber-500/30 shadow">
+            <button id="tab-game" onclick="switchMobileTab('GAME')" class="py-1.5 rounded-lg text-xs font-bold text-black bg-amber-500 shadow flex items-center justify-center space-x-1.5 transition">
+                <i class="fa-solid fa-dice"></i>
+                <span>勝負テーブル</span>
+            </button>
+            <button id="tab-stats" onclick="switchMobileTab('STATS')" class="py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-amber-300 flex items-center justify-center space-x-1.5 transition">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span>順位・対戦ログ</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-2 sm:p-4 md:p-6 flex flex-col lg:flex-row gap-4 md:gap-6">
+
+        <!-- Table Area View -->
+        <section id="table-view" class="flex-grow flex flex-col items-center justify-between felt-table rounded-2xl md:rounded-3xl p-3 sm:p-4 md:p-6 relative overflow-hidden shadow-2xl">
+            
+            <!-- Turn Status Bar -->
+            <div class="w-full flex justify-between items-center mb-2 sm:mb-3 bg-black/75 px-3 py-1.5 sm:py-2.5 rounded-xl border border-amber-500/20 shadow-inner backdrop-blur-sm">
+                <div class="flex items-center space-x-1.5 sm:space-x-2 overflow-hidden">
+                    <span class="text-[10px] sm:text-xs text-amber-200/70 font-semibold shrink-0">手番:</span>
+                    <span id="current-actor-tag" class="px-2 py-0.5 bg-amber-900/90 text-amber-100 rounded text-[10px] sm:text-xs font-bold font-japanese border border-amber-600/50 shadow truncate">
+                        親 の番
+                    </span>
+                    <span id="dealer-status-tag" class="text-[10px] sm:text-xs px-2 py-0.5 rounded bg-black/50 text-amber-400 border border-amber-500/30 font-bold hidden sm:inline">
+                        第1局
+                    </span>
+                </div>
+                <div id="attempt-badge" class="text-[10px] sm:text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 sm:px-3 py-0.5 rounded-full font-medium shrink-0">
+                    投擲: <span id="attempt-count" class="font-bold font-mono">1</span>/3
+                </div>
+            </div>
+
+            <!-- Top Area: CPU Opponent Seats -->
+            <div id="cpu-seats-grid" class="w-full grid grid-cols-3 gap-1.5 sm:gap-3 mb-1 sm:mb-2 transition-all">
+                <!-- CPU 1 -->
+                <div id="seat-1" class="bg-black/60 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/10 flex flex-col items-center transition-all duration-300 shadow">
+                    <div class="flex items-center space-x-1 mb-1 max-w-full overflow-hidden">
+                        <span id="dealer-badge-1" class="text-[9px] px-1 py-0.1 rounded font-extrabold dealer-badge hidden shrink-0">親</span>
+                        <i class="fa-solid fa-dragon text-red-400 text-[10px] sm:text-xs shrink-0"></i>
+                        <span id="p-name-1" class="text-[10px] sm:text-xs md:text-sm font-bold text-gray-200 truncate">竜</span>
+                    </div>
+                    <div class="text-[10px] sm:text-xs text-amber-300 font-mono mb-1">
+                        <span id="chips-1">1,000</span> <span class="text-[9px]">G</span>
+                    </div>
+                    <div class="flex space-x-0.5 sm:space-x-1 mb-1">
+                        <div id="p1-d0" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p1-d1" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p1-d2" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                    </div>
+                    <span id="role-tag-1" class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-black/50 text-gray-400 border border-white/10 font-bold truncate max-w-full">待機中</span>
+                </div>
+
+                <!-- CPU 2 -->
+                <div id="seat-2" class="bg-black/60 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/10 flex flex-col items-center transition-all duration-300 shadow">
+                    <div class="flex items-center space-x-1 mb-1 max-w-full overflow-hidden">
+                        <span id="dealer-badge-2" class="text-[9px] px-1 py-0.1 rounded font-extrabold dealer-badge hidden shrink-0">親</span>
+                        <i class="fa-solid fa-gem text-pink-400 text-[10px] sm:text-xs shrink-0"></i>
+                        <span id="p-name-2" class="text-[10px] sm:text-xs md:text-sm font-bold text-gray-200 truncate">麗子</span>
+                    </div>
+                    <div class="text-[10px] sm:text-xs text-amber-300 font-mono mb-1">
+                        <span id="chips-2">1,000</span> <span class="text-[9px]">G</span>
+                    </div>
+                    <div class="flex space-x-0.5 sm:space-x-1 mb-1">
+                        <div id="p2-d0" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p2-d1" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p2-d2" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                    </div>
+                    <span id="role-tag-2" class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-black/50 text-gray-400 border border-white/10 font-bold truncate max-w-full">待機中</span>
+                </div>
+
+                <!-- CPU 3 -->
+                <div id="seat-3" class="bg-black/60 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/10 flex flex-col items-center transition-all duration-300 shadow">
+                    <div class="flex items-center space-x-1 mb-1 max-w-full overflow-hidden">
+                        <span id="dealer-badge-3" class="text-[9px] px-1 py-0.1 rounded font-extrabold dealer-badge hidden shrink-0">親</span>
+                        <i class="fa-solid fa-shield-halved text-cyan-400 text-[10px] sm:text-xs shrink-0"></i>
+                        <span id="p-name-3" class="text-[10px] sm:text-xs md:text-sm font-bold text-gray-200 truncate">玄武</span>
+                    </div>
+                    <div class="text-[10px] sm:text-xs text-amber-300 font-mono mb-1">
+                        <span id="chips-3">1,000</span> <span class="text-[9px]">G</span>
+                    </div>
+                    <div class="flex space-x-0.5 sm:space-x-1 mb-1">
+                        <div id="p3-d0" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p3-d1" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                        <div id="p3-d2" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                    </div>
+                    <span id="role-tag-3" class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-black/50 text-gray-400 border border-white/10 font-bold truncate max-w-full">待機中</span>
+                </div>
+            </div>
+
+            <!-- Central Bowl (Live Tumbler) with Responsive Dimensions -->
+            <div class="my-2 sm:my-4 relative flex items-center justify-center">
+                <div id="tension-vignette" class="tension-vignette rounded-full"></div>
+                <div id="impact-flash" class="absolute inset-0 rounded-full pointer-events-none z-30"></div>
+
+                <!-- Climax Reach Opportunity Banner -->
+                <div id="reach-container" class="absolute -top-7 sm:-top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-none opacity-0 transition-opacity duration-300 w-full text-center px-2">
+                    <div id="reach-banner-text" class="inline-block px-3 sm:px-5 py-1 rounded-full font-black font-japanese text-sm sm:text-xl md:text-2xl tracking-widest reach-banner-anim bg-black/95 border border-white/20 backdrop-blur-md shadow-2xl">
+                        チャンス！
+                    </div>
+                </div>
+
+                <!-- Chawan Bowl Sized for Mobile Viewports -->
+                <div id="dice-bowl" class="bowl w-48 h-48 sm:w-60 sm:h-60 md:w-72 md:h-72 rounded-full flex items-center justify-center p-2 sm:p-3 transition-all duration-700">
+                    <div id="bowl-dice-area" class="flex space-x-2 sm:space-x-3 items-center justify-center">
+                        <div class="text-amber-200/40 font-japanese text-xs sm:text-base tracking-widest pointer-events-none">
+                            壺皿（碗）
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Announcement Text -->
+                <div id="announcement-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 z-40 px-2">
+                    <div id="announcement-text" class="text-lg sm:text-2xl md:text-3xl font-black font-japanese text-amber-300 drop-shadow-[0_4px_4px_rgba(0,0,0,0.9)] transform -rotate-2 text-center">
+                        勝負！
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Seat (You) -->
+            <div id="seat-0" class="w-full max-w-md bg-black/75 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-white/20 flex items-center justify-between transition-all duration-300 shadow-xl mb-2">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <div class="relative">
+                        <div class="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-amber-500 to-amber-700 rounded-lg sm:rounded-xl flex items-center justify-center text-black font-extrabold text-sm sm:text-lg shadow">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <span id="dealer-badge-0" class="absolute -top-1.5 -right-1.5 text-[9px] px-1.5 py-0.1 rounded font-black dealer-badge hidden">親</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-1.5">
+                            <span id="p-name-0" class="font-bold text-gray-100 text-xs sm:text-sm md:text-base truncate max-w-[100px] sm:max-w-none">あなた</span>
+                            <span id="role-tag-0" class="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-black/60 text-gray-400 border border-white/10 font-bold">待機中</span>
+                        </div>
+                        <div class="text-[10px] sm:text-xs text-amber-300 font-mono mt-0.5">
+                            所持: <span id="chips-0" class="font-bold text-xs sm:text-sm">1,000</span> G
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player Dice -->
+                <div class="flex space-x-1 sm:space-x-1.5">
+                    <div id="p0-d0" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                    <div id="p0-d1" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                    <div id="p0-d2" class="dice-container-mini"><div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div></div>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 bg-black/80 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-amber-500/30 shadow-xl backdrop-blur-md">
+                <!-- Bet Selector (Thumb Reachable) -->
+                <div id="bet-control-container" class="w-full sm:w-auto flex items-center justify-between sm:justify-start space-x-2">
+                    <span class="text-[11px] sm:text-xs text-amber-200/80 font-bold shrink-0">BET:</span>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="adjustBet(-50)" class="w-7 h-7 sm:w-8 sm:h-8 rounded bg-gray-800 active:bg-gray-700 text-amber-300 font-bold border border-amber-500/30 flex items-center justify-center text-sm shadow">-</button>
+                        <span id="bet-display" class="w-12 sm:w-14 text-center font-bold text-sm sm:text-base text-amber-300 font-mono">100</span>
+                        <button onclick="adjustBet(50)" class="w-7 h-7 sm:w-8 sm:h-8 rounded bg-gray-800 active:bg-gray-700 text-amber-300 font-bold border border-amber-500/30 flex items-center justify-center text-sm shadow">+</button>
+                    </div>
+                    <button onclick="setBetMax()" class="px-2 py-1 bg-amber-800/90 active:bg-amber-700 text-amber-100 text-[10px] sm:text-xs font-bold rounded border border-amber-500/40 shadow">MAX</button>
+                </div>
+
+                <!-- Main Action Button -->
+                <button id="roll-button" onclick="handleActionButtonClick()" class="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 active:scale-95 text-black font-black text-sm sm:text-base md:text-lg rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all flex items-center justify-center space-x-2 border border-amber-200">
+                    <i class="fa-solid fa-dice text-base"></i>
+                    <span id="roll-btn-text">賽子を振る！</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Stats & Log View (Mobile tabable, desktop right column) -->
+        <section id="stats-view" class="w-full lg:w-80 flex flex-col gap-3 sm:gap-4 hidden lg:flex">
+            
+            <!-- Table Ranking -->
+            <div class="bg-black/80 rounded-2xl md:rounded-3xl border border-amber-500/30 p-3 sm:p-4 backdrop-blur-md shadow-xl">
+                <h2 class="text-[11px] sm:text-xs font-bold text-amber-300/80 uppercase tracking-widest mb-2 sm:mb-3 flex items-center justify-between border-b border-white/5 pb-1.5">
+                    <span>CHIP STANDINGS</span>
+                    <i class="fa-solid fa-ranking-star text-amber-400"></i>
+                </h2>
+
+                <div id="standings-list" class="space-y-1.5 text-xs">
+                    <!-- Dynamic Ranking -->
+                </div>
+            </div>
+
+            <!-- Round Log -->
+            <div class="bg-black/80 rounded-2xl md:rounded-3xl border border-amber-500/30 p-3 sm:p-4 backdrop-blur-md flex-grow flex flex-col min-h-[200px] shadow-xl">
+                <h2 class="text-[11px] sm:text-xs font-bold text-amber-300/80 uppercase tracking-widest mb-2 flex items-center justify-between border-b border-white/5 pb-1.5">
+                    <span>TABLE LOG</span>
+                    <i class="fa-solid fa-scroll text-amber-400/70"></i>
+                </h2>
+                
+                <div id="game-log" class="flex-grow overflow-y-auto max-h-52 lg:max-h-80 space-y-1.5 pr-1 text-xs">
+                    <div class="text-gray-500 text-center py-6 italic text-[11px]">「勝負開始」を押して第1局を始めてください</div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-gray-900 border border-amber-600/50 rounded-2xl max-w-lg w-full p-4 sm:p-5 text-gray-200 max-h-[85vh] overflow-y-auto relative shadow-2xl text-xs sm:text-sm">
+            <button onclick="closeRulesModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-base sm:text-lg font-bold font-japanese gold-text mb-3 border-b border-gray-800 pb-2">チンチロリン基本規則</h3>
+            
+            <div class="space-y-2">
+                <div class="bg-black/40 p-2 rounded-lg border border-white/10">
+                    <div class="font-bold text-amber-300">親番（ディーラー）と子の勝負</div>
+                    <p class="text-gray-400 mt-0.5 text-[11px] sm:text-xs">各局ごとに親が時計回りで交代します。子は親に対してそれぞれBETを行い、親 vs 子の勝負を個別に判定します。</p>
+                </div>
+
+                <div class="bg-amber-950/40 p-2 rounded-lg border border-amber-800/50">
+                    <div class="font-bold text-amber-300">親の総取りなしルール</div>
+                    <p class="text-gray-400 mt-0.5 text-[11px] sm:text-xs">
+                        親がピンゾロやゾロ目、シゴロ等の役を出しても即座の総取りにはならず、子全員が自分の賽を振って親と勝負します。
+                    </p>
+                    <ul class="list-disc pl-4 text-gray-400 space-y-0.5 mt-1 text-[11px] sm:text-xs">
+                        <li><strong class="text-amber-200">ピンゾロ (1-1-1)</strong>: 5倍配当勝負</li>
+                        <li><strong class="text-amber-200">ゾロ目 (2~6)</strong>: 3倍配当勝負</li>
+                        <li><strong class="text-emerald-300">シゴロ (4-5-6)</strong>: 2倍配当勝負</li>
+                        <li><strong class="text-red-400">ヒフミ (1-2-3)</strong>: 2倍払い判定</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-800/60 p-2 rounded-lg border border-gray-700">
+                    <div class="font-bold text-emerald-300">役の強さ順位</div>
+                    <p class="text-gray-400 mt-0.5 text-[11px] sm:text-xs">ピンゾロ(5倍) ＞ ゾロ目(3倍) ＞ シゴロ(2倍) ＞ 通常の目 (6の目〜1の目) ＞ 目なし ＞ ヒフミ(-2倍)</p>
+                </div>
+            </div>
+
+            <button onclick="closeRulesModal()" class="w-full mt-4 py-2 bg-amber-600 active:bg-amber-500 text-black font-bold rounded-xl transition text-xs sm:text-sm">
+                閉じる
+            </button>
+        </div>
+    </div>
+
+    <!-- Name Customization Modal -->
+    <div id="name-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-gray-900 border border-amber-600/50 rounded-2xl max-w-md w-full p-4 sm:p-5 text-gray-200 relative shadow-2xl text-xs sm:text-sm">
+            <button onclick="closeNameModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-base sm:text-lg font-bold font-japanese gold-text mb-2 border-b border-gray-800 pb-1.5 flex items-center space-x-1.5">
+                <i class="fa-solid fa-user-pen text-amber-400"></i>
+                <span>プレイヤー名変更</span>
+            </h3>
+
+            <p class="text-gray-400 mb-3 text-[11px] sm:text-xs">対戦者全員の名前を自由に設定できます。</p>
+
+            <div class="space-y-2">
+                <div class="bg-black/40 p-2 rounded-lg border border-amber-500/20">
+                    <label class="block text-[11px] font-bold text-amber-300 mb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-user text-amber-400"></i>
+                        <span>あなた (PLAYER):</span>
+                    </label>
+                    <input type="text" id="input-name-0" maxlength="10" class="w-full bg-gray-800/90 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs sm:text-sm focus:outline-none focus:border-amber-400 transition" placeholder="あなた">
+                </div>
+
+                <div class="bg-black/40 p-2 rounded-lg border border-red-500/20">
+                    <label class="block text-[11px] font-bold text-red-300 mb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-dragon text-red-400"></i>
+                        <span>CPU 1:</span>
+                    </label>
+                    <input type="text" id="input-name-1" maxlength="10" class="w-full bg-gray-800/90 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs sm:text-sm focus:outline-none focus:border-red-400 transition" placeholder="竜 (Dragon)">
+                </div>
+
+                <div class="bg-black/40 p-2 rounded-lg border border-pink-500/20">
+                    <label class="block text-[11px] font-bold text-pink-300 mb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-gem text-pink-400"></i>
+                        <span>CPU 2:</span>
+                    </label>
+                    <input type="text" id="input-name-2" maxlength="10" class="w-full bg-gray-800/90 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs sm:text-sm focus:outline-none focus:border-pink-400 transition" placeholder="麗子 (Reiko)">
+                </div>
+
+                <div class="bg-black/40 p-2 rounded-lg border border-cyan-500/20">
+                    <label class="block text-[11px] font-bold text-cyan-300 mb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+                        <span>CPU 3:</span>
+                    </label>
+                    <input type="text" id="input-name-3" maxlength="10" class="w-full bg-gray-800/90 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-bold text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition" placeholder="玄武 (Genbu)">
+                </div>
+            </div>
+
+            <div class="flex space-x-2 mt-4">
+                <button onclick="resetDefaultNames()" class="w-1/3 py-2 bg-gray-800 active:bg-gray-700 text-gray-300 font-bold rounded-xl transition text-xs">
+                    初期値
+                </button>
+                <button onclick="savePlayerNames()" class="w-2/3 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 active:from-amber-400 text-black font-extrabold rounded-xl shadow-lg transition text-xs sm:text-sm">
+                    保存して反映
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- 4-PLAYER GAME DATA & STATE --- */
+        const DEFAULT_NAMES = ["あなた", "竜 (Dragon)", "麗子 (Reiko)", "玄武 (Genbu)"];
+
+        const PLAYERS = [
+            { id: 0, name: "あなた", isHuman: true, avatar: "fa-user", color: "amber" },
+            { id: 1, name: "竜 (Dragon)", isHuman: false, avatar: "fa-dragon", color: "red" },
+            { id: 2, name: "麗子 (Reiko)", isHuman: false, avatar: "fa-gem", color: "pink" },
+            { id: 3, name: "玄武 (Genbu)", isHuman: false, avatar: "fa-shield-halved", color: "cyan" }
+        ];
+
+        let state = {
+            playerCount: 4, // 2, 3, or 4
+            chips: [1000, 1000, 1000, 1000],
+            bets: [100, 100, 100, 100],
+            roundNumber: 1,
+            dealerIndex: 1,
+            currentTurnQueue: [],
+            currentActorIndex: 1,
+            attempt: 1,
+            playerResults: {},
+            isRolling: false,
+            autoPlay: false,
+            soundEnabled: true,
+            roundPhase: 'READY',
+            mobileTab: 'GAME' // 'GAME' | 'STATS'
+        };
+
+        function switchMobileTab(tab) {
+            state.mobileTab = tab;
+            const tableView = document.getElementById('table-view');
+            const statsView = document.getElementById('stats-view');
+            const tabGameBtn = document.getElementById('tab-game');
+            const tabStatsBtn = document.getElementById('tab-stats');
+
+            if (tab === 'GAME') {
+                if (tableView) tableView.classList.remove('hidden');
+                if (statsView) statsView.classList.add('hidden');
+                if (tabGameBtn) tabGameBtn.className = 'py-1.5 rounded-lg text-xs font-bold text-black bg-amber-500 shadow flex items-center justify-center space-x-1.5 transition';
+                if (tabStatsBtn) tabStatsBtn.className = 'py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-amber-300 flex items-center justify-center space-x-1.5 transition';
+            } else {
+                if (tableView) tableView.classList.add('hidden');
+                if (statsView) statsView.classList.remove('hidden');
+                if (tabGameBtn) tabGameBtn.className = 'py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-amber-300 flex items-center justify-center space-x-1.5 transition';
+                if (tabStatsBtn) tabStatsBtn.className = 'py-1.5 rounded-lg text-xs font-bold text-black bg-amber-500 shadow flex items-center justify-center space-x-1.5 transition';
+            }
+        }
+
+        function setPlayerCount(count) {
+            if (state.isRolling) return;
+            state.playerCount = count;
+
+            [2, 3, 4].forEach(c => {
+                const btn = document.getElementById(`btn-count-${c}`);
+                if (btn) {
+                    if (c === count) {
+                        btn.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-black shadow transition';
+                    } else {
+                        btn.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold text-gray-300 transition';
+                    }
+                }
+            });
+
+            if (state.dealerIndex >= state.playerCount) {
+                state.dealerIndex = 0;
+            }
+
+            if (state.roundPhase === 'ROLLING') {
+                state.roundPhase = 'READY';
+                state.attempt = 1;
+                state.currentTurnQueue = [];
+                state.currentActorIndex = state.dealerIndex;
+            }
+
+            updateSeatsUI();
+            updateStandingsUI();
+            updateRollButtonUI();
+            showAnnouncement(`${count}人対戦に変更`, 'text-amber-300');
+        }
+
+        /* --- MOBILE ENHANCED AUDIO SYNTHESIS --- */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+
+                if (type === 'roll') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(120 + Math.random() * 200, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'lock') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'heartbeat') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(85, now);
+                    osc.frequency.exponentialRampToValueAtTime(35, now + 0.2);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'impact') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(480, now);
+                    osc.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+                    gain.gain.setValueAtTime(0.45, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'pinzoro_chance' || type === 'rainbow_blessing') {
+                    [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                        gain.gain.setValueAtTime(0.24, now + idx * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.06);
+                        osc.stop(now + idx * 0.06 + 0.35);
+                    });
+                } else if (type === 'arashi_chance') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.linearRampToValueAtTime(880, now + 0.25);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                } else if (type === 'shigoro_chance') {
+                    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                        gain.gain.setValueAtTime(0.22, now + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.07 + 0.22);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.07);
+                        osc.stop(now + idx * 0.07 + 0.22);
+                    });
+                } else if (type === 'hifumi_pinch') {
+                    [110, 116.54].forEach(freq => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now);
+                        osc.frequency.linearRampToValueAtTime(freq * 0.7, now + 0.4);
+                        gain.gain.setValueAtTime(0.25, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.4);
+                    });
+                } else if (type === 'win') {
+                    [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.3);
+                    });
+                } else if (type === 'lose') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(60, now + 0.3);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch (e) {
+                console.warn("Audio Context init pending user action:", e);
+            }
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('sound-icon').className = state.soundEnabled 
+                ? 'fa-solid fa-volume-high text-amber-400' 
+                : 'fa-solid fa-volume-xmark text-gray-500';
+            document.getElementById('sound-text').innerText = state.soundEnabled ? '音: ON' : '音: OFF';
+            if (state.soundEnabled) initAudio();
+        }
+
+        function toggleAutoPlay() {
+            state.autoPlay = !state.autoPlay;
+            const btn = document.getElementById('auto-btn');
+            const icon = document.getElementById('auto-icon');
+            const text = document.getElementById('auto-text');
+            if (state.autoPlay) {
+                btn.className = 'w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-amber-600/30 text-amber-300 rounded-full border border-amber-500/60 text-xs flex items-center justify-center space-x-1 transition shadow';
+                icon.className = 'fa-solid fa-forward text-amber-400';
+                text.innerText = '自動: ON';
+                if (!state.isRolling && state.roundPhase === 'ROLLING') {
+                    const currentP = PLAYERS[state.currentActorIndex];
+                    if (!currentP.isHuman) setTimeout(handleActionButtonClick, 300);
+                }
+            } else {
+                btn.className = 'w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-gray-900/90 hover:bg-gray-800 rounded-full border border-amber-500/30 text-xs flex items-center justify-center space-x-1 transition shadow';
+                icon.className = 'fa-solid fa-play text-gray-400';
+                text.innerText = '自動: OFF';
+            }
+        }
+
+        /* --- STREAMING_CHUNK:Rendering Dice Components... --- */
+        function create3DDiceCubeHTML(frontValue = 1) {
+            return `
+                <div class="dice-3d">
+                    <div class="dice-face face-1">${getFaceInner(frontValue)}</div>
+                    <div class="dice-face face-2">${getFaceInner(2)}</div>
+                    <div class="dice-face face-3">${getFaceInner(3)}</div>
+                    <div class="dice-face face-4">${getFaceInner(4)}</div>
+                    <div class="dice-face face-5">${getFaceInner(5)}</div>
+                    <div class="dice-face face-6">${getFaceInner(6)}</div>
+                </div>
+            `;
+        }
+
+        function renderDiceFaceHTML(val, isMini = false) {
+            const faceClass = isMini ? 'dice-face dice-face-mini face-1' : 'dice-face face-1';
+            return `<div class="${faceClass}">${getFaceInner(val)}</div>`;
+        }
+
+        function getFaceInner(val) {
+            if (val === 1) return `<div class="dot-large-red"></div>`;
+            const dotPositions = {
+                2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9],
+                5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9]
+            };
+            let grid = '';
+            const pos = dotPositions[val] || [];
+            for (let i = 1; i <= 9; i++) {
+                grid += pos.includes(i) ? `<div class="dot"></div>` : `<div></div>`;
+            }
+            return `<div class="dot-grid">${grid}</div>`;
+        }
+
+        /* --- STREAMING_CHUNK:Hand Evaluation Algorithms... --- */
+        function evaluateHand(dice) {
+            const sorted = [...dice].sort((a, b) => a - b);
+            const [a, b, c] = sorted;
+
+            // 1. ピンゾロ (1-1-1)
+            if (a === 1 && b === 1 && c === 1) {
+                return { rank: 6, score: 10, multiplier: 5, name: 'ピンゾロ (5倍勝)', code: 'PINZORO' };
+            }
+            // 2. ゾロ目 (2-2-2 ~ 6-6-6)
+            if (a === b && b === c) {
+                return { rank: 5, score: a, multiplier: 3, name: `${a}のゾロ目 (3倍勝)`, code: 'ZORO' };
+            }
+            // 3. シゴロ (4-5-6)
+            if (a === 4 && b === 5 && c === 6) {
+                return { rank: 4, score: 0, multiplier: 2, name: 'シゴロ (2倍勝)', code: 'SHIGORO' };
+            }
+            // 4. ヒフミ (1-2-3)
+            if (a === 1 && b === 2 && c === 3) {
+                return { rank: 1, score: 0, multiplier: -2, name: 'ヒフミ (2倍払)', code: 'HIFUMI' };
+            }
+            // 5. 通常の目
+            if (a === b) return { rank: 3, score: c, multiplier: 1, name: `${c}の目`, code: 'NORMAL' };
+            if (b === c) return { rank: 3, score: a, multiplier: 1, name: `${a}の目`, code: 'NORMAL' };
+            if (a === c) return { rank: 3, score: b, multiplier: 1, name: `${b}の目`, code: 'NORMAL' };
+
+            // 6. 目なし
+            return { rank: 2, score: 0, multiplier: 0, name: '目なし', code: 'MENASHI' };
+        }
+
+        /* --- STREAMING_CHUNK:Sequential Dice Roll Animation with Mobile Optimizations... --- */
+        async function animateDiceRollSequential(targetDiceValues, onDiceLocked) {
+            const bowlArea = document.getElementById('bowl-dice-area');
+            const bowl = document.getElementById('dice-bowl');
+            const vignette = document.getElementById('tension-vignette');
+            const impactFlash = document.getElementById('impact-flash');
+            
+            bowlArea.innerHTML = '';
+            const diceElements = [];
+            const diceWrappers = [];
+
+            for (let i = 0; i < 3; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'dice-container scale-105 transition-transform duration-300';
+                wrapper.innerHTML = create3DDiceCubeHTML(1);
+                bowlArea.appendChild(wrapper);
+                diceWrappers.push(wrapper);
+                diceElements.push(wrapper.querySelector('.dice-3d'));
+            }
+
+            bowl.classList.add('shaking');
+            let rollSoundInterval = setInterval(() => playSound('roll'), 90);
+
+            const rotateInterval = setInterval(() => {
+                diceElements.forEach((diceEl) => {
+                    if (diceEl.dataset.locked !== 'true') {
+                        const rx = Math.floor(Math.random() * 360);
+                        const ry = Math.floor(Math.random() * 360);
+                        diceEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+                    }
+                });
+            }, 50);
+
+            let heartbeatInterval = null;
+            const d1 = targetDiceValues[0];
+            const d2 = targetDiceValues[1];
+            const d3 = targetDiceValues[2];
+            const isPinzoroChance = (d1 === 1 && d2 === 1);
+            const isArashiChance = (d1 === d2 && d1 !== 1);
+            const isShigoroChance = [4, 5, 6].includes(d1) && [4, 5, 6].includes(d2) && d1 !== d2;
+            const isHifumiPinch = [1, 2, 3].includes(d1) && [1, 2, 3].includes(d2) && d1 !== d2;
+            const isBigChance = isPinzoroChance || isArashiChance || isShigoroChance;
+
+            let chanceCutinType = null;
+            if (isBigChance) {
+                let isSuccess = false;
+                if (isPinzoroChance) isSuccess = (d3 === 1);
+                else if (isArashiChance) isSuccess = (d3 === d1);
+                else if (isShigoroChance) {
+                    const sorted = [d1, d2, d3].sort((a, b) => a - b);
+                    isSuccess = (sorted[0] === 4 && sorted[1] === 5 && sorted[2] === 6);
+                }
+
+                const rand = Math.random() * 100;
+                if (isSuccess) {
+                    if (rand < 10) chanceCutinType = 'BLESSING';
+                    else if (rand < 70) chanceCutinType = 'TENKEI';
+                    else if (rand < 90) chanceCutinType = 'ONEGAI';
+                    else chanceCutinType = 'IKEEE';
+                } else {
+                    if (rand < 10) chanceCutinType = 'TENKEI';
+                    else if (rand < 40) chanceCutinType = 'ONEGAI';
+                    else chanceCutinType = 'IKEEE';
+                }
+            }
+            let cutinTimeout = null;
+
+            for (let i = 0; i < 3; i++) {
+                const isThirdDice = (i === 2);
+                let waitTime = 400;
+                if (isThirdDice) {
+                    if (isBigChance) waitTime = 5000;
+                    else if (isHifumiPinch) waitTime = 3000;
+                    else waitTime = 1000;
+                }
+
+                if (isThirdDice) {
+                    bowl.classList.add('bowl-tension-zoom');
+                    if (vignette) vignette.classList.add('tension-active');
+                    
+                    diceWrappers[2].classList.add('dice-climax-aura');
+                    diceWrappers[0].classList.add('opacity-40', 'scale-90');
+                    diceWrappers[1].classList.add('opacity-40', 'scale-90');
+
+                    triggerReachOpportunityBanner(d1, d2);
+
+                    if (chanceCutinType) {
+                        cutinTimeout = setTimeout(() => {
+                            showChanceCutinBanner(chanceCutinType);
+                        }, 1500);
+                    }
+
+                    let pulseCount = 0;
+                    const maxPulses = isBigChance ? 5 : (isHifumiPinch ? 3 : 1);
+                    heartbeatInterval = setInterval(() => {
+                        playSound('heartbeat');
+                        pulseCount++;
+                        if (pulseCount >= maxPulses) clearInterval(heartbeatInterval);
+                    }, 850);
+                }
+
+                await new Promise(res => setTimeout(res, waitTime));
+
+                if (cutinTimeout) clearTimeout(cutinTimeout);
+                if (isThirdDice && heartbeatInterval) clearInterval(heartbeatInterval);
+
+                const targetVal = targetDiceValues[i];
+                const diceEl = diceElements[i];
+                diceEl.dataset.locked = 'true';
+
+                const faceRotations = {
+                    1: 'rotateX(0deg) rotateY(0deg)',
+                    2: 'rotateX(0deg) rotateY(-90deg)',
+                    3: 'rotateX(90deg) rotateY(0deg)',
+                    4: 'rotateX(-90deg) rotateY(0deg)',
+                    5: 'rotateX(0deg) rotateY(90deg)',
+                    6: 'rotateX(0deg) rotateY(180deg)'
+                };
+
+                diceEl.style.transition = 'transform 0.15s ease-out';
+                diceEl.style.transform = faceRotations[targetVal] || 'rotateX(0deg)';
+                
+                if (isThirdDice) {
+                    if (impactFlash) {
+                        impactFlash.classList.add('flash-impact');
+                        setTimeout(() => impactFlash.classList.remove('flash-impact'), 400);
+                    }
+                    playSound('impact');
+                    hideReachOpportunityBanner();
+                } else {
+                    playSound('lock');
+                }
+
+                if (onDiceLocked) onDiceLocked(i, targetVal);
+            }
+
+            if (vignette) vignette.classList.remove('tension-active');
+            bowl.classList.remove('bowl-tension-zoom');
+            diceWrappers.forEach(w => w.className = 'dice-container scale-105');
+
+            clearInterval(rotateInterval);
+            clearInterval(rollSoundInterval);
+            bowl.classList.remove('shaking');
+
+            await new Promise(res => setTimeout(res, 350));
+        }
+
+        /* --- STREAMING_CHUNK:Reach Banners and Dynamic Highlights... --- */
+        function triggerReachOpportunityBanner(d1, d2) {
+            const container = document.getElementById('reach-container');
+            const bannerText = document.getElementById('reach-banner-text');
+            if (!container || !bannerText) return;
+
+            bannerText.className = 'inline-block px-3 sm:px-5 py-1 rounded-full font-black font-japanese text-sm sm:text-xl md:text-2xl tracking-widest reach-banner-anim bg-black/95 border-2 backdrop-blur-md shadow-2xl';
+
+            if (d1 === 1 && d2 === 1) {
+                bannerText.innerText = '👑 ピンゾロチャンス！ 👑';
+                bannerText.classList.add('banner-pinzoro', 'border-amber-400');
+                container.classList.remove('opacity-0');
+                playSound('pinzoro_chance');
+                return;
+            }
+
+            if (d1 === d2) {
+                bannerText.innerText = '🔥 アラシチャンス！ 🔥';
+                bannerText.classList.add('banner-arashi', 'border-red-500');
+                container.classList.remove('opacity-0');
+                playSound('arashi_chance');
+                return;
+            }
+
+            const isShigoroPair = [4, 5, 6].includes(d1) && [4, 5, 6].includes(d2) && d1 !== d2;
+            if (isShigoroPair) {
+                bannerText.innerText = '✨ シゴロチャンス！ ✨';
+                bannerText.classList.add('banner-shigoro', 'border-emerald-500');
+                container.classList.remove('opacity-0');
+                playSound('shigoro_chance');
+                return;
+            }
+
+            const isHifumiPair = [1, 2, 3].includes(d1) && [1, 2, 3].includes(d2) && d1 !== d2;
+            if (isHifumiPair) {
+                bannerText.innerText = '💀 ヒフミピンチ！ 💀';
+                bannerText.classList.add('banner-hifumi', 'border-red-800');
+                container.classList.remove('opacity-0');
+                playSound('hifumi_pinch');
+                return;
+            }
+
+            container.classList.add('opacity-0');
+        }
+
+        function showChanceCutinBanner(type) {
+            const container = document.getElementById('reach-container');
+            const bannerText = document.getElementById('reach-banner-text');
+            if (!container || !bannerText) return;
+
+            const flash = document.getElementById('impact-flash');
+            if (flash) {
+                flash.classList.add('flash-impact');
+                setTimeout(() => flash.classList.remove('flash-impact'), 300);
+            }
+
+            if (type === 'BLESSING') {
+                bannerText.className = 'inline-block px-4 sm:px-6 py-1.5 rounded-full font-black font-japanese text-base sm:text-2xl md:text-3xl tracking-widest banner-rainbow-blessing bg-black/95 border-2 border-pink-500 shadow-2xl backdrop-blur-lg';
+                bannerText.innerText = '🌈 圧倒的祝福!! 🌈';
+                playSound('rainbow_blessing');
+            } else if (type === 'TENKEI') {
+                bannerText.className = 'inline-block px-4 sm:px-6 py-1.5 rounded-full font-black font-japanese text-sm sm:text-xl md:text-2xl tracking-widest reach-banner-anim banner-tenkei bg-black/95 border-2 border-red-500 backdrop-blur-md shadow-2xl';
+                bannerText.innerText = '⚡ これは、天啓!? ⚡';
+                playSound('arashi_chance');
+            } else if (type === 'ONEGAI') {
+                bannerText.className = 'inline-block px-4 sm:px-6 py-1.5 rounded-full font-black font-japanese text-sm sm:text-xl md:text-2xl tracking-widest reach-banner-anim banner-onegai bg-black/95 border-2 border-emerald-400 backdrop-blur-md shadow-2xl';
+                bannerText.innerText = '🍀 お願い、、、 🍀';
+                playSound('shigoro_chance');
+            } else if (type === 'IKEEE') {
+                bannerText.className = 'inline-block px-4 sm:px-6 py-1.5 rounded-full font-black font-japanese text-sm sm:text-xl md:text-2xl tracking-widest reach-banner-anim banner-ikeee bg-black/95 border-2 border-sky-400 backdrop-blur-md shadow-2xl';
+                bannerText.innerText = '💥 いけぇぇぇ！！ 💥';
+                playSound('lock');
+            }
+        }
+
+        function hideReachOpportunityBanner() {
+            const container = document.getElementById('reach-container');
+            if (container) container.classList.add('opacity-0');
+        }
+
+        /* --- STREAMING_CHUNK:Round Logic and Turn Progression... --- */
+        function startNewRound() {
+            state.roundPhase = 'ROLLING';
+            state.attempt = 1;
+            state.playerResults = {};
+
+            state.dealerIndex = state.dealerIndex % state.playerCount;
+
+            const queue = [state.dealerIndex];
+            for (let i = 1; i < state.playerCount; i++) {
+                queue.push((state.dealerIndex + i) % state.playerCount);
+            }
+            state.currentTurnQueue = queue;
+            state.currentActorIndex = queue[0];
+
+            // AI Bets
+            for (let i = 0; i < state.playerCount; i++) {
+                if (i !== state.dealerIndex) {
+                    if (PLAYERS[i].isHuman) {
+                        state.bets[i] = Math.min(state.chips[i], state.bets[i]);
+                    } else {
+                        const maxBet = Math.min(250, Math.floor(state.chips[i] / 4));
+                        const cpuBet = Math.max(50, Math.floor((Math.random() * (maxBet - 50) + 50) / 50) * 50);
+                        state.bets[i] = Math.min(state.chips[i], cpuBet || 50);
+                    }
+                }
+            }
+
+            for (let p = 0; p < state.playerCount; p++) {
+                for (let d = 0; d < 3; d++) {
+                    const el = document.getElementById(`p${p}-d${d}`);
+                    if (el) el.innerHTML = `<div class="dice-3d"><div class="dice-face dice-face-mini face-1"><div class="text-gray-500 text-[10px] font-bold">?</div></div></div>`;
+                }
+                const tag = document.getElementById(`role-tag-${p}`);
+                if (tag) {
+                    tag.innerText = (p === state.dealerIndex) ? '親番 (未振)' : '子 (待機)';
+                    tag.className = 'text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-black/50 text-gray-400 border border-white/10 font-bold truncate';
+                }
+            }
+
+            updateSeatsUI();
+            updateRollButtonUI();
+            showAnnouncement(`第${state.roundNumber}局 開始！ 親: ${PLAYERS[state.dealerIndex].name}`, 'text-amber-300');
+
+            if (!PLAYERS[state.dealerIndex].isHuman && state.autoPlay) {
+                setTimeout(handleActionButtonClick, 800);
+            }
+        }
+
+        async function handleActionButtonClick() {
+            if (state.isRolling) return;
+            initAudio();
+
+            if (state.roundPhase === 'READY' || state.roundPhase === 'ROUND_OVER') {
+                startNewRound();
+                return;
+            }
+
+            await executeCurrentActorRoll();
+        }
+
+        async function executeCurrentActorRoll() {
+            state.isRolling = true;
+            updateRollButtonUI();
+
+            const actorId = state.currentActorIndex;
+            const actor = PLAYERS[actorId];
+            const isDealer = (actorId === state.dealerIndex);
+
+            showAnnouncement(`${actor.name} (${isDealer ? '親' : '子'}) の振出 (${state.attempt}/3)`, actor.isHuman ? 'text-emerald-300' : 'text-amber-300');
+
+            const dice = [
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1
+            ];
+            const hand = evaluateHand(dice);
+
+            await animateDiceRollSequential(dice, (lockedIdx, val) => {
+                const miniBox = document.getElementById(`p${actorId}-d${lockedIdx}`);
+                if (miniBox) miniBox.innerHTML = renderDiceFaceHTML(val, true);
+            });
+
+            const hasEstablishedHand = hand.code !== 'MENASHI';
+            const roleTag = document.getElementById(`role-tag-${actorId}`);
+
+            if (hasEstablishedHand) {
+                state.playerResults[actorId] = { dice, hand, attempt: state.attempt };
+                if (roleTag) {
+                    roleTag.innerText = hand.name;
+                    roleTag.className = 'text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded font-bold bg-amber-600 text-black border border-amber-300 truncate';
+                }
+                showAnnouncement(`${actor.name}: ${hand.name}`, 'text-amber-300');
+
+                // 親の即座総取りは廃止：親の手番が確定したら、全員（子）が順番に賽を振って勝負する
+                advanceToNextPlayer();
+            } else {
+                if (state.attempt < 3) {
+                    state.attempt++;
+                    document.getElementById('attempt-count').innerText = state.attempt;
+                    showAnnouncement(`${actor.name}: 目なし！振り直し (${state.attempt}/3)`, 'text-gray-400');
+                    state.isRolling = false;
+                    updateRollButtonUI();
+
+                    if (!actor.isHuman && state.autoPlay) {
+                        setTimeout(executeCurrentActorRoll, 600);
+                    }
+                } else {
+                    state.playerResults[actorId] = { dice, hand, attempt: 3 };
+                    if (roleTag) {
+                        roleTag.innerText = '目なし (確定)';
+                        roleTag.className = 'text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400 border border-gray-700 truncate';
+                    }
+                    showAnnouncement(`${actor.name}: 3回目なしで役なし確定`, 'text-gray-400');
+                    advanceToNextPlayer();
+                }
+            }
+        }
+
+        function advanceToNextPlayer() {
+            state.attempt = 1;
+            document.getElementById('attempt-count').innerText = 1;
+
+            state.currentTurnQueue.shift();
+
+            if (state.currentTurnQueue.length > 0) {
+                state.currentActorIndex = state.currentTurnQueue[0];
+                state.isRolling = false;
+                updateSeatsUI();
+                updateRollButtonUI();
+
+                const nextActor = PLAYERS[state.currentActorIndex];
+                if (!nextActor.isHuman && state.autoPlay) {
+                    setTimeout(executeCurrentActorRoll, 700);
+                }
+            } else {
+                finalizeRoundStandard();
+            }
+        }
+
+        /* --- STREAMING_CHUNK:Settlement and Account Balances... --- */
+        async function finalizeRoundSpecial(type, dealerHand) {
+            state.roundPhase = 'ROUND_OVER';
+            state.isRolling = false;
+
+            const dealerId = state.dealerIndex;
+            const dealer = PLAYERS[dealerId];
+            let summaryText = "";
+
+            if (type === 'DEALER_INSTANT_WIN') {
+                const mult = dealerHand.multiplier;
+                summaryText = `親 (${dealer.name}) が${dealerHand.name}！総取り！`;
+                playSound('win');
+                if (dealer.isHuman) triggerConfetti();
+
+                for (let p = 0; p < state.playerCount; p++) {
+                    if (p !== dealerId) {
+                        const amt = Math.min(state.chips[p], state.bets[p] * mult);
+                        state.chips[p] -= amt;
+                        state.chips[dealerId] += amt;
+                    }
+                }
+            } else if (type === 'DEALER_INSTANT_LOSS') {
+                summaryText = `親 (${dealer.name}) がヒフミ！総払い！`;
+                playSound('lose');
+                for (let p = 0; p < state.playerCount; p++) {
+                    if (p !== dealerId) {
+                        const amt = state.bets[p] * 2;
+                        state.chips[dealerId] = Math.max(0, state.chips[dealerId] - amt);
+                        state.chips[p] += amt;
+                    }
+                }
+            }
+
+            showAnnouncement(summaryText, 'text-yellow-300');
+            addLogEntry(`第${state.roundNumber}局`, summaryText, `役: ${dealerHand.name}`);
+
+            finishRoundTransition();
+        }
+
+        function finalizeRoundStandard() {
+            state.roundPhase = 'ROUND_OVER';
+            state.isRolling = false;
+
+            const dealerId = state.dealerIndex;
+            const dealer = PLAYERS[dealerId];
+            const dealerRes = state.playerResults[dealerId];
+
+            let dealerNet = 0;
+            const logDetails = [];
+
+            for (let p = 0; p < state.playerCount; p++) {
+                if (p === dealerId) continue;
+                const punter = PLAYERS[p];
+                const punterRes = state.playerResults[p];
+                const betAmt = state.bets[p];
+
+                let winner = 'DRAW';
+                let mult = 1;
+
+                if (punterRes.hand.rank > dealerRes.hand.rank) {
+                    winner = 'PUNTER';
+                    mult = punterRes.hand.multiplier > 0 ? punterRes.hand.multiplier : 1;
+                } else if (punterRes.hand.rank < dealerRes.hand.rank) {
+                    winner = 'DEALER';
+                    mult = dealerRes.hand.multiplier > 0 ? dealerRes.hand.multiplier : 1;
+                } else {
+                    if (punterRes.hand.score > dealerRes.hand.score) {
+                        winner = 'PUNTER';
+                        mult = 1;
+                    } else if (punterRes.hand.score < dealerRes.hand.score) {
+                        winner = 'DEALER';
+                        mult = 1;
+                    } else {
+                        winner = 'DRAW';
+                    }
+                }
+
+                if (winner === 'PUNTER') {
+                    const gain = betAmt * mult;
+                    state.chips[p] += gain;
+                    state.chips[dealerId] = Math.max(0, state.chips[dealerId] - gain);
+                    dealerNet -= gain;
+                    logDetails.push(`${punter.name}: 勝(+${gain})`);
+                } else if (winner === 'DEALER') {
+                    const gain = Math.min(state.chips[p], betAmt * mult);
+                    state.chips[p] -= gain;
+                    state.chips[dealerId] += gain;
+                    dealerNet += gain;
+                    logDetails.push(`${punter.name}: 負(-${gain})`);
+                } else {
+                    logDetails.push(`${punter.name}: 分`);
+                }
+            }
+
+            if (PLAYERS[0].id === dealerId) {
+                if (dealerNet > 0) { playSound('win'); triggerConfetti(); }
+                else if (dealerNet < 0) playSound('lose');
+            } else {
+                const myResult = state.playerResults[0];
+                if (myResult.hand.rank > dealerRes.hand.rank || (myResult.hand.rank === dealerRes.hand.rank && myResult.hand.score > dealerRes.hand.score)) {
+                    playSound('win');
+                    triggerConfetti();
+                } else if (myResult.hand.rank < dealerRes.hand.rank || (myResult.hand.rank === dealerRes.hand.rank && myResult.hand.score < dealerRes.hand.score)) {
+                    playSound('lose');
+                }
+            }
+
+            showAnnouncement(`第${state.roundNumber}局 決着！`, 'text-yellow-300');
+            addLogEntry(`第${state.roundNumber}局 判定`, `親: ${dealer.name} (${dealerRes.hand.name})`, logDetails.join(' / '));
+
+            finishRoundTransition();
+        }
+
+        function finishRoundTransition() {
+            state.dealerIndex = (state.dealerIndex + 1) % state.playerCount;
+            state.roundNumber++;
+
+            updateSeatsUI();
+            updateStandingsUI();
+            updateRollButtonUI();
+        }
+
+        /* --- STREAMING_CHUNK:Updating Mobile Interfaces and Badges... --- */
+        function updateSeatsUI() {
+            const cpuGrid = document.getElementById('cpu-seats-grid');
+            if (cpuGrid) {
+                if (state.playerCount === 2) {
+                    cpuGrid.className = 'w-full max-w-xs mx-auto grid grid-cols-1 gap-1.5 sm:gap-3 mb-1 sm:mb-2 transition-all';
+                } else if (state.playerCount === 3) {
+                    cpuGrid.className = 'w-full max-w-xl mx-auto grid grid-cols-2 gap-1.5 sm:gap-3 mb-1 sm:mb-2 transition-all';
+                } else {
+                    cpuGrid.className = 'w-full grid grid-cols-3 gap-1.5 sm:gap-3 mb-1 sm:mb-2 transition-all';
+                }
+            }
+
+            for (let p = 1; p < 4; p++) {
+                const seat = document.getElementById(`seat-${p}`);
+                if (seat) {
+                    if (p < state.playerCount) {
+                        seat.classList.remove('hidden');
+                    } else {
+                        seat.classList.add('hidden');
+                    }
+                }
+            }
+
+            for (let p = 0; p < state.playerCount; p++) {
+                const seat = document.getElementById(`seat-${p}`);
+                const badge = document.getElementById(`dealer-badge-${p}`);
+                const chipsEl = document.getElementById(`chips-${p}`);
+
+                if (chipsEl) chipsEl.innerText = state.chips[p].toLocaleString();
+
+                if (badge) {
+                    if (p === state.dealerIndex) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                }
+
+                if (seat) {
+                    if (state.roundPhase === 'ROLLING' && p === state.currentActorIndex) {
+                        seat.classList.add('seat-active');
+                    } else {
+                        seat.classList.remove('seat-active');
+                    }
+                }
+            }
+
+            const actor = PLAYERS[state.currentActorIndex] || PLAYERS[0];
+            const currentActorTag = document.getElementById('current-actor-tag');
+            if (currentActorTag) {
+                if (state.roundPhase === 'ROUND_OVER' || state.roundPhase === 'READY') {
+                    currentActorTag.innerText = `局終了 (次親: ${PLAYERS[state.dealerIndex].name})`;
+                    currentActorTag.className = 'px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-[10px] sm:text-xs font-bold font-japanese truncate';
+                } else {
+                    const isDealer = (state.currentActorIndex === state.dealerIndex);
+                    currentActorTag.innerText = `${actor.name} (${isDealer ? '親' : '子'}) の番`;
+                    currentActorTag.className = isDealer 
+                        ? 'px-2 py-0.5 bg-red-900 text-red-100 rounded text-[10px] sm:text-xs font-bold font-japanese border border-red-500 shadow truncate'
+                        : 'px-2 py-0.5 bg-emerald-900 text-emerald-100 rounded text-[10px] sm:text-xs font-bold font-japanese border border-emerald-500 shadow truncate';
+                }
+            }
+
+            const dealerStatusTag = document.getElementById('dealer-status-tag');
+            if (dealerStatusTag) {
+                dealerStatusTag.innerText = `第${state.roundNumber}局 (親: ${PLAYERS[state.dealerIndex].name})`;
+            }
+
+            const betCtrl = document.getElementById('bet-control-container');
+            if (betCtrl) {
+                if (state.dealerIndex === 0) {
+                    betCtrl.classList.add('opacity-40', 'pointer-events-none');
+                } else {
+                    betCtrl.classList.remove('opacity-40', 'pointer-events-none');
+                }
+            }
+        }
+
+        function updateRollButtonUI() {
+            const btn = document.getElementById('roll-button');
+            const btnText = document.getElementById('roll-btn-text');
+
+            if (state.isRolling) {
+                btnText.innerText = '賽子を振り中...';
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                return;
+            }
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+
+            if (state.roundPhase === 'READY' || state.roundPhase === 'ROUND_OVER') {
+                btnText.innerText = `第${state.roundNumber}局を開始！ (親: ${PLAYERS[state.dealerIndex].name})`;
+            } else {
+                const actor = PLAYERS[state.currentActorIndex] || PLAYERS[0];
+                const isDealer = (state.currentActorIndex === state.dealerIndex);
+                if (actor.isHuman) {
+                    btnText.innerText = `あなたの賽を振る！ (${state.attempt}/3)`;
+                } else {
+                    btnText.innerText = `${actor.name} (${isDealer ? '親' : '子'}) 振出 (${state.attempt}/3)`;
+                }
+            }
+        }
+
+        function updateStandingsUI() {
+            const list = document.getElementById('standings-list');
+            if (!list) return;
+
+            const activePlayers = PLAYERS.filter(p => p.id < state.playerCount);
+            const ranked = [...activePlayers].sort((a, b) => state.chips[b.id] - state.chips[a.id]);
+
+            let html = '';
+            ranked.forEach((p, idx) => {
+                const medal = idx === 0 ? '👑' : `${idx + 1}位`;
+                const isYou = p.isHuman ? '<span class="text-amber-400 font-bold ml-1">(あなた)</span>' : '';
+                html += `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-black/40 border border-white/5">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-6 text-center font-bold text-amber-300 font-mono text-[11px] sm:text-xs">${medal}</span>
+                            <span class="text-gray-300 font-medium text-xs truncate max-w-[120px]">${p.name}${isYou}</span>
+                        </div>
+                        <span class="font-mono font-bold text-amber-400 text-xs sm:text-sm">${state.chips[p.id].toLocaleString()} G</span>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function showAnnouncement(text, colorClass) {
+            const overlay = document.getElementById('announcement-overlay');
+            const announceText = document.getElementById('announcement-text');
+
+            announceText.innerText = text;
+            announceText.className = `text-base sm:text-2xl md:text-3xl font-black font-japanese drop-shadow-[0_4px_4px_rgba(0,0,0,0.9)] transform -rotate-2 text-center transition-transform ${colorClass}`;
+            
+            overlay.classList.remove('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('opacity-0');
+            }, 1200);
+        }
+
+        function addLogEntry(round, title, detail) {
+            const logContainer = document.getElementById('game-log');
+            if (logContainer.children.length === 1 && logContainer.children[0].classList.contains('italic')) {
+                logContainer.innerHTML = '';
+            }
+
+            const entry = document.createElement('div');
+            entry.className = `p-2 rounded-xl bg-gray-900/85 border border-gray-800 flex justify-between items-center transition-all`;
+            entry.innerHTML = `
+                <div>
+                    <div class="font-bold text-amber-300 text-[11px] sm:text-xs">${round}: ${title}</div>
+                    <div class="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">${detail}</div>
+                </div>
+            `;
+            logContainer.prepend(entry);
+        }
+
+        function adjustBet(delta) {
+            if (state.isRolling || state.dealerIndex === 0) return;
+            state.bets[0] = Math.max(50, Math.min(state.chips[0], state.bets[0] + delta));
+            document.getElementById('bet-display').innerText = state.bets[0];
+        }
+
+        function setBetMax() {
+            if (state.isRolling || state.dealerIndex === 0) return;
+            state.bets[0] = Math.max(50, state.chips[0]);
+            document.getElementById('bet-display').innerText = state.bets[0];
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function openRulesModal() {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            document.getElementById('rules-modal').classList.add('hidden');
+        }
+
+        function openNameModal() {
+            for (let i = 0; i < 4; i++) {
+                const inputEl = document.getElementById(`input-name-${i}`);
+                if (inputEl) inputEl.value = PLAYERS[i].name;
+            }
+            document.getElementById('name-modal').classList.remove('hidden');
+        }
+
+        function closeNameModal() {
+            document.getElementById('name-modal').classList.add('hidden');
+        }
+
+        function savePlayerNames() {
+            for (let i = 0; i < 4; i++) {
+                const inputEl = document.getElementById(`input-name-${i}`);
+                if (inputEl) {
+                    const trimmed = inputEl.value.trim();
+                    PLAYERS[i].name = trimmed ? trimmed : DEFAULT_NAMES[i];
+                }
+            }
+
+            updatePlayerNamesUI();
+            updateSeatsUI();
+            updateStandingsUI();
+            updateRollButtonUI();
+            closeNameModal();
+            showAnnouncement("名前を更新しました", "text-amber-300");
+        }
+
+        function resetDefaultNames() {
+            for (let i = 0; i < 4; i++) {
+                const inputEl = document.getElementById(`input-name-${i}`);
+                if (inputEl) inputEl.value = DEFAULT_NAMES[i];
+            }
+        }
+
+        function updatePlayerNamesUI() {
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`p-name-${i}`);
+                if (el) el.innerText = PLAYERS[i].name;
+            }
+        }
+
+        window.onload = function() {
+            updatePlayerNamesUI();
+            updateSeatsUI();
+            updateStandingsUI();
+            updateRollButtonUI();
+
+            // Mobile-first touch audio unlocker
+            const unlockAudio = () => {
+                initAudio();
+                document.removeEventListener('touchstart', unlockAudio);
+                document.removeEventListener('click', unlockAudio);
+            };
+            document.addEventListener('touchstart', unlockAudio, { passive: true });
+            document.addEventListener('click', unlockAudio, { passive: true });
+        };
+    </script>
+</body>
+</html>
